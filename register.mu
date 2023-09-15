@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import os
-from tinydb import TinyDB
 import main
 from secrets import compare_digest
 
@@ -25,18 +24,17 @@ try:
         elif env_variable == "password_confirm":
             password_confirm = os.environ[env_variable]
     if len(username) < 4:
-        print("username too short")
+        print("username must be longer than 4 characters")
         print_fields()
     elif len(password) < 8:
-        print("password too short")
+        print("password must be longer than 8 characters")
         print_fields()
     elif not compare_digest(password, password_confirm):
         print("passwords do not match")
         print_fields()
     elif len(username) >= 4 and len(password) >= 8 and compare_digest(password, password_confirm):
         print("registering...")
-        main.setup()
-        userdb = TinyDB('~/.nomadForum/databases/users.json')
+        main.setup_db()
         # TODO register user
 except:
     print("An error occured")

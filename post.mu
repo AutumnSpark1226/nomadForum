@@ -4,6 +4,6 @@ import main
 
 main.print_header()
 try:
-    print("view post")
+    print("create post")
 except:
     print("An error occured")
