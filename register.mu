@@ -48,7 +48,7 @@ try:
         print_fields()
     else:
         print("registering...")
-        hashed_password = hashlib.sha512(password).hexdigest()
+        hashed_password = hashlib.blake2b(password).hexdigest()
         main.setup_db()
         main.execute_sql("INSERT INTO users (username, enabled, password, link_id) VALUES (%(username)s, 1, "
                          "%(hashed_password)s, %(link_id)s", {"username": username, "hashed_password":
