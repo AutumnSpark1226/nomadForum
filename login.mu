@@ -24,7 +24,7 @@ try:
             password = os.environ[env_variable]
         elif env_variable == "link_id":
             link_id = os.environ[env_variable]
-    if len(link_id) != 32 and not link_id.isalnum():
+    if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
         exit(0)
     main.setup_db()
@@ -52,7 +52,8 @@ try:
             exit(0)
         else:
             hasher = PasswordHasher()
-            hashed_password = main.decrypt(main.query_database(f"SELECT password FROM users WHERE username = '{username}'")[0][0])
+            hashed_password = main.decrypt(main.query_database(
+                f"SELECT password FROM users WHERE username = '{username}'")[0][0])
             try:
                 hasher.verify(hashed_password, password)
             except VerificationError:
@@ -67,7 +68,8 @@ try:
             # TODO rehash and/or reencrypt
             print("You logged in successfully.")
             # submit a dummy value in order to force a reload
-            print("`F00f`_`[Continue`:" + main.page_path + "/index.mu`reload=376]`_`f")
+            print("`F00f`_`[Continue`:" + main.page_path
+                  + "/index.mu`reload=376]`_`f")
     main.close_database()
 except:
     print("An error occured")

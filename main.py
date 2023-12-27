@@ -2,9 +2,9 @@ import os
 import os.path
 import sqlite3
 import string
-from cryptography.fernet import Fernet, MultiFernet
 from sqlite3 import Connection, Cursor
 from uuid import UUID
+from cryptography.fernet import Fernet, MultiFernet
 
 connection: Connection
 cursor: Cursor
@@ -19,33 +19,28 @@ def setup_db():
         os.mkdir(storage_path)
     connection = sqlite3.connect(storage_path + "/database.db")
     cursor = connection.cursor()
-    execute_sql(
-        "CREATE TABLE IF NOT EXISTS users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT "
-        "NOT NULL UNIQUE, display_name TEXT, enabled INTEGER DEFAULT 1 NOT NULL, password TEXT NOT NULL, link_id TEXT, login_time INTEGER)")
-    execute_sql(
-        "CREATE TABLE IF NOT EXISTS posts (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, post_id TEXT NOT "
-        "NULL UNIQUE, username TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL, "
-        "locked INTEGER DEFAULT 0 NOT NULL)")
-    execute_sql(
-        "CREATE TABLE IF NOT EXISTS comments (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, comment_id "
-        "TEXT NOT NULL UNIQUE, post_id TEXT NOT NULL, parent TEXT NOT NULL, username TEXT NOT NULL, content TEXT NOT "
-        "NULL, changed INTEGER NOT NULL)")
-    execute_sql("UPDATE users SET link_id = '0', login_time = 0 WHERE link_id != '0' AND (login_time + 86400) < "
-                "unixepoch()")
+    execute_sql("CREATE TABLE IF NOT EXISTS users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, display_name TEXT, enabled INTEGER DEFAULT 1 NOT NULL, password TEXT NOT NULL, link_id TEXT, login_time INTEGER)")
+    execute_sql("CREATE TABLE IF NOT EXISTS posts (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, post_id TEXT NOT NULL UNIQUE, username TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL, locked INTEGER DEFAULT 0 NOT NULL)")
+    execute_sql("CREATE TABLE IF NOT EXISTS comments (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, comment_id TEXT NOT NULL UNIQUE, post_id TEXT NOT NULL, parent TEXT NOT NULL, username TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL)")
+    # remove old sessions
+    execute_sql("UPDATE users SET link_id = '0', login_time = 0 WHERE link_id != '0' AND (login_time + 86400) < unixepoch()")
 
 
 def close_database():
     # changes are only written when the database closes
+    global connection, cursor
     connection.commit()
     cursor.close()
     connection.close()
 
 
 def execute_sql(command: str):
+    global cursor
     cursor.execute(command)
 
 
 def query_database(command: str):
+    global cursor
     result = cursor.execute(command)
     return result.fetchall()
 
@@ -56,7 +51,7 @@ def check_username(username: str) -> bool:
     if not set(username).issubset(set(string.printable)):
         return False
     # don't allow SQL injections and some other characters
-    if "'" in username or "\\" in username or '"' in username or "`" in username or "\n" in username:
+    if "'" in username or "\\" in username or '"' in username or "`" in username or "\n" in username or "[" in username or "]" in username:
         return False
     # don't allow double space
     if "  " in username:
@@ -69,7 +64,7 @@ def check_username(username: str) -> bool:
         return False
     # don't allow "[DELETED]" (reserved for created made by deleted users); block some other variations to avoid confusion
     if username.upper() == "[DELETED]" or username.upper() == "DELETED" or username.upper() == "(DELETED)" or username.upper() == "{DELETED}":
-            return False
+        return False
     return True
 
 
@@ -79,6 +74,7 @@ def check_uuid(possible_uuid: str) -> bool:
         return True
     except ValueError:
         return False
+
 
 def prepare_content(content: str) -> str:
     # replace \
@@ -90,6 +86,7 @@ def prepare_content(content: str) -> str:
     content = content.replace("`=", "\`=")
     content += "``"
     return content
+
 
 def prepare_title(title: str) -> str:
     # remove newline
@@ -123,7 +120,7 @@ def print_header(link_id: str, reload=False):
     print()
 
 
-def get_MultiFernet():
+def get_MultiFernet() -> MultiFernet:
     key_path = storage_path + "/key.secret"
     if os.path.isfile(key_path):
         keyfile = open(key_path, 'r')
@@ -139,7 +136,7 @@ def get_MultiFernet():
         keyfile = open(key_path, "w")
         # add warnings to keyfile
         keyfile.write("# !!! DO NOT MODIFY THIS FILE (unless you know what you're doing). It contains keys required for the encryption of user passwords. Moficatitions can cause users not being able to log in. !!!\n")
-        keyfile.write("# The first key (in the first line) will be used for encryption. All lines starting with '#' will be ignored.\n")
+        keyfile.write("# The first key (in the third line) will be used for encryption. All lines starting with '#' will be ignored.\n")
         keyfile.write(key.decode())
         keyfile.close()
         os.system(f"chmod 400 {key_path}")  # set permissions

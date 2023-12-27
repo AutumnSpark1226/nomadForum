@@ -15,14 +15,17 @@ try:
             page = int(os.environ[env_variable])
         elif env_variable == "var_sort":
             sort = os.environ[env_variable]
+    if len(link_id) != 32 or not link_id.isalnum():
+        print("something went wrong...")
+        exit(0)
     main.setup_db()
     main.print_header(link_id)
     if sort == "old":
         order_sql_statement = "changed ASC"
     elif sort == "title_asc":
-        order_sql_statement = "title ASC"
+        order_sql_statement = "title COLLATE NOCASE ASC"
     elif sort == "title_desc":
-        order_sql_statement = "title DESC"
+        order_sql_statement = "title COLLATE NOCASE DESC"
     else:
         order_sql_statement = "changed DESC"
     print()

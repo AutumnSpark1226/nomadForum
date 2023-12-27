@@ -8,8 +8,11 @@ from argon2 import PasswordHasher
 def print_fields():
     print("Username: `B444`<username`" + username + ">`b")
     print("Password: `B444`<!|password`>`b")
-    print("`F00f`_`[Delete account`:" + main.page_path + "/delete_account.mu`*]`_`f")
-    print("`F00f`_`[Delete account and content`:" + main.page_path + "/delete_account.mu`*|delete_content=yes]`_`f")
+    print("`F00f`_`[Delete account`:"
+          + main.page_path + "/delete_account.mu`*]`_`f")
+    print("`F00f`_`[Delete account and content`:"
+          + main.page_path + "/delete_account.mu`*|delete_content=yes]`_`f")
+
 
 def delete_comment_chain(comment_ids):
     for comment_id in comment_ids:
@@ -36,7 +39,7 @@ try:
             link_id = os.environ[env_variable]
     main.setup_db()
     main.print_header(link_id, reload=True)
-    if len(link_id) != 32 and not link_id.isalnum():
+    if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
         main.close_database()
         exit(0)
@@ -68,8 +71,7 @@ try:
                 print("This account is disabled and cannot be deleted.")
                 main.close_database()
                 exit(0)
-            main.execute_sql(
-                f"DELETE FROM users WHERE username = '{username}'")
+            main.execute_sql(f"DELETE FROM users WHERE username = '{username}'")
             # modify / delete posts their comments
             if delete_content:
                 posts = main.query_database(f"SELECT post_id FROM posts WHERE username = '{username}'")
@@ -86,7 +88,7 @@ try:
                 main.execute_sql(f"UPDATE comments SET username = '[DELETED]' WHERE username = '{username}'")
             print("Your account has been deleted.\n")
             # submit a dummy value in order to force a reload
-            print("`F00f`_`[Home`:" + main.page_path + "/index.mu`reload=132]`_`f")
+            print(f"`F00f`_`[Home`:{main.page_path}/index.mu`reload=132]`_`f")
     main.close_database()
 except:
     print("An error occured")

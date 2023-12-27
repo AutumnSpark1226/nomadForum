@@ -10,8 +10,7 @@ def print_fields():
 
 
 def display_comment(parent: str, indent: int):
-    comments = main.query_database(f"SELECT comment_id, username, content, datetime(changed, 'unixepoch') FROM "
-                                    f"comments WHERE post_id = '{post_id}' AND parent = '{parent}'")
+    comments = main.query_database(f"SELECT comment_id, username, content, datetime(changed, 'unixepoch') FROM comments WHERE post_id = '{post_id}' AND parent = '{parent}'")
     for comment_data in comments:
         print(">" * (2 + indent) + f"{comment_data[1]}: {comment_data[2]}")
         if not comments_locked:
@@ -32,7 +31,7 @@ try:
             post_id = os.environ[env_variable]
         elif env_variable == "field_post_id":
             post_id = os.environ[env_variable]
-    if len(link_id) != 32 and not link_id.isalnum():
+    if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
         exit(0)
     main.setup_db()
@@ -46,8 +45,7 @@ try:
         print("post not found")
         print_fields()
     else:
-        post_data = main.query_database(f"SELECT post_id, username, title, content, datetime(changed, 'unixepoch') FROM "
-                                        f"posts WHERE post_id = '{post_id}'")[0]
+        post_data = main.query_database(f"SELECT post_id, username, title, content, datetime(changed, 'unixepoch') FROM posts WHERE post_id = '{post_id}'")[0]
         print(f">{post_data[1]}: {post_data[2]} ({post_data[4]} (UTC))")
         print(f"{post_data[3]}")
         print("``")

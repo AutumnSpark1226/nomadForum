@@ -23,7 +23,7 @@ try:
             title = os.environ[env_variable]
         elif env_variable == "field_content":
             content = os.environ[env_variable]
-    if len(link_id) != 32 and not link_id.isalnum():
+    if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
         exit(0)
     main.setup_db()
@@ -43,13 +43,11 @@ try:
             print("account disabled")
             main.close_database()
             exit(0)
-        elif len(main.query_database(f"SELECT numeric_id FROM posts WHERE username = '{username}' AND unixepoch() < ("
-                                     f"changed + 30)")) != 0:
+        elif len(main.query_database(f"SELECT numeric_id FROM posts WHERE username = '{username}' AND unixepoch() < (changed + 30)")) != 0:
             print("spam protection triggered!")
             main.close_database()
             exit(0)
-        elif len(main.query_database(f"SELECT numeric_id FROM posts WHERE (title = '{title}' OR content = '{content}') AND "
-                                   f"username = '{username}' AND unixepoch() < (changed + 600)")) != 0:
+        elif len(main.query_database(f"SELECT numeric_id FROM posts WHERE (title = '{title}' OR content = '{content}') AND username = '{username}' AND unixepoch() < (changed + 600)")) != 0:
             print("spam protection triggered!")
             main.close_database()
             exit(0)
@@ -57,8 +55,7 @@ try:
         # this should not be very probable
         while len(main.query_database(f"SELECT numeric_id FROM posts WHERE post_id = '{post_id}'")) != 0:
             post_id = str(uuid.uuid4())
-        main.execute_sql(f"INSERT INTO posts (post_id, username, title, content, changed) VALUES ('{post_id}', "
-                         f"'{username}', '{title}', '{content}', unixepoch())")
+        main.execute_sql(f"INSERT INTO posts (post_id, username, title, content, changed) VALUES ('{post_id}', '{username}', '{title}', '{content}', unixepoch())")
         print(f"`F00f`_`[Visit post`:{main.page_path}/view.mu`post_id={post_id}]`_`f")
     main.close_database()
 except:

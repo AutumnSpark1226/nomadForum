@@ -5,9 +5,10 @@ import uuid
 import main
 
 
-def print_fields():
+def print_fields() -> None:
     print(f"Comment: `B444`<content`{content}>`b")
-    print(f"`F00f`_`[Post comment`:{main.page_path}/comment.mu`*|post_id={post_id}|parent={parent}]`_`f")
+    print(f"`F00f`_`[Post comment`:{
+          main.page_path}/comment.mu`*|post_id={post_id}|parent={parent}]`_`f")
 
 
 print("#!c=0")
@@ -25,8 +26,8 @@ try:
             post_id = os.environ[env_variable]
         elif env_variable == "var_parent":
             parent = os.environ[env_variable]
-    if len(link_id) != 32 and not link_id.isalnum():
-        print("something went wrong...  DEBUG: link_id not correct")
+    if len(link_id) != 32 or not link_id.isalnum():
+        print("something went wrong...")
         exit(0)
     main.setup_db()
     main.print_header(link_id)
@@ -35,7 +36,7 @@ try:
     elif content == "":
         print_fields()
     elif post_id == "" or parent == "":
-        print(f"something went wrong...")
+        print("something went wrong...")
         main.close_database()
         exit(0)
     elif not main.check_uuid(post_id):
@@ -61,13 +62,11 @@ try:
             print("Your account is disabled.")
             main.close_database()
             exit(0)
-        elif len(main.query_database(f"SELECT numeric_id FROM comments WHERE content = '{content}' AND username = '{username}'"
-                                   f" AND unixepoch() < (changed + 600)")) != 0:
+        elif len(main.query_database(f"SELECT numeric_id FROM comments WHERE content = '{content}' AND username = '{username}' AND unixepoch() < (changed + 600)")) != 0:
             print("spam protection triggered!")
             main.close_database()
             exit(0)
-        elif len(main.query_database(f"SELECT numeric_id FROM comments WHERE username = '{username}' AND unixepoch() < "
-                                     f"(changed + 20)")) != 0:
+        elif len(main.query_database(f"SELECT numeric_id FROM comments WHERE username = '{username}' AND unixepoch() < (changed + 20)")) != 0:
             print("spam protection triggered!")
             main.close_database()
             exit(0)
@@ -75,8 +74,7 @@ try:
         # this should not be very probable
         while len(main.query_database(f"SELECT numeric_id FROM comments WHERE comment_id = '{comment_id}'")) != 0:
             comment_id = str(uuid.uuid4())
-        main.execute_sql(f"INSERT INTO comments (comment_id, post_id, parent, username, content, changed) VALUES "
-                         f"('{comment_id}', '{post_id}', '{parent}', '{username}', '{content}', unixepoch())")
+        main.execute_sql(f"INSERT INTO comments (comment_id, post_id, parent, username, content, changed) VALUES ('{comment_id}', '{post_id}', '{parent}', '{username}', '{content}', unixepoch())")
         print(f"`F00f`_`[Visit post`:{main.page_path}/view.mu`post_id={post_id}]`_`f")
     main.close_database()
 except:

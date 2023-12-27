@@ -10,6 +10,8 @@ def print_fields():
     print("Password: `B444`<!|password`>`b")
     print("Confirm Password: `B444`<!|password_confirm`>`b")
     print("`F00f`_`[Register`:" + main.page_path + "/register.mu`*]`_`f")
+    print()
+    print("Consider using a unique password. A malicious node owner could add a script that saves plaintext passwords because they cannot be hashed on the client.")
 
 
 print("#!c=0")
@@ -29,7 +31,7 @@ try:
             link_id = os.environ[env_variable]
     main.setup_db()
     main.print_header(link_id, reload=True)
-    if len(link_id) != 32 and not link_id.isalnum():
+    if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
         main.close_database()
         exit(0)
@@ -64,13 +66,11 @@ try:
                 main.close_database()
                 exit(0)
             prepared_password = main.encrypt(hashed_password)
-            main.execute_sql(
-                f"INSERT INTO users (username, password, link_id, login_time) VALUES ('{username}', "
-                f"'{prepared_password}', '{link_id}', unixepoch())")
+            main.execute_sql(f"INSERT INTO users (username, password, link_id, login_time) VALUES ('{username}', '{prepared_password}', '{link_id}', unixepoch())")
             print("Registration successful!")
             print(f"Welcome to {main.forum_name}!")
             # submit a dummy value in order to force a reload
-            print("`F00f`_`[Continue`:" + main.page_path + "/index.mu`reload=3542434]`_`f")
+            print(f"`F00f`_`[Continue`:{main.page_path}/index.mu`reload=3542434]`_`f")
     main.close_database()
-except Exception:
+except:
     print("An error occured")

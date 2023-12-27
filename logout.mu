@@ -17,7 +17,7 @@ try:
         elif env_variable == "link_id":
             link_id = os.environ[env_variable]
     main.setup_db()
-    if len(link_id) != 32 and not link_id.isalnum():
+    if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
         exit(0)
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) == 0:
@@ -31,7 +31,7 @@ try:
         main.print_header(link_id, reload=True)
         print("\nLogged out")
         # submit a dummy value in order to force a reload
-        print("`F00f`_`[Continue`:" + main.page_path + "/index.mu`reload=62323]`_`f")
+        print(f"`F00f`_`[Continue`:{main.page_path}/index.mu`reload=62323]`_`f")
     main.close_database()
 except Exception:
     print("An error occured")

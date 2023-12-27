@@ -3,6 +3,7 @@ import os
 
 import main
 
+
 try:
     link_id = ""
     for env_variable in os.environ:
@@ -13,7 +14,7 @@ try:
         exit(0)
     main.setup_db()
     main.print_header(link_id)
-    print("RULES")
+    print("Admin page")
     main.close_database()
 except:
     print("An error occured")
