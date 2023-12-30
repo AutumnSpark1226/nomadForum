@@ -5,21 +5,15 @@ import math
 import main
 
 try:
-    link_id = ""
+    link_id, remote_identity = main.handle_ids()
+    main.print_header(link_id)
     page = 0
     sort = "new"
     for env_variable in os.environ:
-        if env_variable == "link_id":
-            link_id = os.environ[env_variable]
-        elif env_variable == "var_page":
+        if env_variable == "var_page":
             page = int(os.environ[env_variable])
         elif env_variable == "var_sort":
             sort = os.environ[env_variable]
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        exit(0)
-    main.setup_db()
-    main.print_header(link_id)
     if sort == "old":
         order_sql_statement = "changed ASC"
     elif sort == "title_asc":

@@ -4,16 +4,15 @@ import os
 import main
 
 try:
-    link_id = ""
-    for env_variable in os.environ:
-        if env_variable == "link_id":
-            link_id = os.environ[env_variable]
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        exit(0)
-    main.setup_db()
+    link_id, remote_identity = main.handle_ids()
     main.print_header(link_id)
-    print("RULES")
+    print(">General rules")
+    print("By using this site in any way you accept the following rules")
+    print("1. No illegal content")
+    print("2. No harassment, discrimination, or abuse of any kind")
+    print("3. No spamming")
+    print("4. Don't post other people's personal information without their explicit consent")
+    print("5. These rules can be changed any time without further notice. The node admin(s) is/are responsible for their enforcement.")
     main.close_database()
 except:
     print("An error occured")

@@ -6,27 +6,29 @@ from sqlite3 import Connection, Cursor
 from uuid import UUID
 from cryptography.fernet import Fernet, MultiFernet
 
+# configure your setup here
+storage_path = ".nomadForum"  # folder containing all saved files (database, keys, etc.)
+page_path = "/page/nomadforum"  # path on your node, here {node_id}:/page/nomadforum/index.mu (nomadnet url) or ~/.nomadnetwork/storage/pages/nomadforum/index.mu (file path) would be the main page
+forum_name = "nomadForum"  # name your forum
+
 connection: Connection
 cursor: Cursor
-storage_path = ".nomadForum"
-page_path = "/page/nomadforum"
-forum_name = "nomadForum"
 
 
-def setup_db():
+def setup_db() -> None:
     global connection, cursor
     if not os.path.isdir(storage_path):
         os.mkdir(storage_path)
     connection = sqlite3.connect(storage_path + "/database.db")
     cursor = connection.cursor()
-    execute_sql("CREATE TABLE IF NOT EXISTS users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, display_name TEXT, enabled INTEGER DEFAULT 1 NOT NULL, password TEXT NOT NULL, link_id TEXT, login_time INTEGER)")
+    execute_sql("CREATE TABLE IF NOT EXISTS users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, display_name TEXT, enabled INTEGER DEFAULT 1 NOT NULL, password TEXT NOT NULL, link_id TEXT, remote_identity TEXT, login_time INTEGER)")
     execute_sql("CREATE TABLE IF NOT EXISTS posts (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, post_id TEXT NOT NULL UNIQUE, username TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL, locked INTEGER DEFAULT 0 NOT NULL)")
     execute_sql("CREATE TABLE IF NOT EXISTS comments (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, comment_id TEXT NOT NULL UNIQUE, post_id TEXT NOT NULL, parent TEXT NOT NULL, username TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL)")
     # remove old sessions
     execute_sql("UPDATE users SET link_id = '0', login_time = 0 WHERE link_id != '0' AND (login_time + 86400) < unixepoch()")
 
 
-def close_database():
+def close_database() -> None:
     # changes are only written when the database closes
     global connection, cursor
     connection.commit()
@@ -34,12 +36,12 @@ def close_database():
     connection.close()
 
 
-def execute_sql(command: str):
+def execute_sql(command: str) -> None:
     global cursor
     cursor.execute(command)
 
 
-def query_database(command: str):
+def query_database(command: str) -> [[]]:
     global cursor
     result = cursor.execute(command)
     return result.fetchall()
@@ -100,7 +102,9 @@ def prepare_title(title: str) -> str:
     return title
 
 
-def print_header(link_id: str, reload=False):
+def print_header(link_id: str, reload=False) -> None:
+    if reload:
+        print("#!c=0")
     print('`F222`Bddd')
     print('-')
     account_options = "ERROR"
@@ -118,6 +122,36 @@ def print_header(link_id: str, reload=False):
     print("-")
     print("`a`b`f")
     print()
+
+
+def handle_ids() -> [str, str]:
+    link_id, remote_identity = "", ""
+    for env_variable in os.environ:
+        if env_variable == "link_id":
+            link_id = os.environ[env_variable]
+        if env_variable == "remote_identity":
+            remote_identity = os.environ[env_variable]
+    if len(link_id) != 32 or not link_id.isalnum():
+        print("something went wrong...")
+        exit(0)
+    setup_db()
+    if len(remote_identity) != 0:
+        if len(remote_identity) != 32 or not remote_identity.isalnum():
+            print("something went wrong...")
+            close_database()
+            exit(0)
+        else:
+            check_remote_identity(link_id, remote_identity)
+    return link_id, remote_identity
+
+
+def check_remote_identity(link_id: str, remote_identity: str) -> None:
+    query_result = query_database(f"SELECT user_id FROM users WHERE remote_identity = '{remote_identity}' AND link_id != '{link_id}'")
+    if len(query_result) == 1:
+        execute_sql(f"UPDATE users SET link_id = '{link_id}' WHERE user_id = {query_result[0][0]} AND remote_identity = '{remote_identity}'")
+    elif len(query_result) >= 1:
+        # this should NOT happen, however the system might be able to repair itself
+        execute_sql(f"UPDATE users SET link_id = '0', remote_identity = '0' WHERE remote_identity = '{remote_identity}'")
 
 
 def get_MultiFernet() -> MultiFernet:
@@ -155,7 +189,7 @@ def decrypt(encrypted_password: str) -> str:
     return mf.decrypt(encrypted_password.encode()).decode()
 
 
-def add_new_key():
+def add_new_key() -> None:
     key_path = storage_path + "/key.secret"
     if os.path.isfile(key_path):
         keyfile = open(key_path, 'r')
@@ -173,7 +207,7 @@ def add_new_key():
         os.system(f"chmod 400 {key_path}")  # set permissions
 
 
-def rotate_keys():
+def rotate_keys() -> None:
     add_new_key()
     mf = get_MultiFernet()
     user_data_all = query_database("SELECT username, password FROM users")

@@ -21,12 +21,12 @@ def delete_comment_chain(comment_ids):
         delete_comment_chain(comment_chain)
 
 
-print("#!c=0")
 try:
+    link_id, remote_identity = main.handle_ids()
+    main.print_header(link_id, reload=True)
     username = ""
     password = ""
     password_confirm = ""
-    link_id = ""
     delete_content = False
     for env_variable in os.environ:
         if env_variable == "field_username":
@@ -35,14 +35,6 @@ try:
             password = os.environ[env_variable]
         elif env_variable == "var_delete_content" and os.environ[env_variable] == "yes":
             delete_content = True
-        elif env_variable == "link_id":
-            link_id = os.environ[env_variable]
-    main.setup_db()
-    main.print_header(link_id, reload=True)
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        main.close_database()
-        exit(0)
     if username == "":
         print_fields()
     elif len(username) < 4:

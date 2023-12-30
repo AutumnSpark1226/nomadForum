@@ -8,27 +8,22 @@ from argon2 import PasswordHasher
 def print_fields():
     print("Username: `B444`<username`" + username + ">`b")
     print("Password: `B444`<!|password`>`b")
-    print("`F00f`_`[Login`:" + main.page_path + "/login.mu`*]`_`f")
+    print("`F00f`_`[Login`:" + main.page_path + "/login.mu`*]`_`f  `F00f`_`[Login and stay logged in`:" + main.page_path + "/login.mu`*|keep_login=yes]`_`f")
 
 
-print("#!c=0")
 try:
+    link_id, remote_identity = main.handle_ids()
+    main.print_header(link_id, reload=True)
     username = ""
     password = ""
-    password_confirm = ""
-    link_id = ""
+    keep_login = False
     for env_variable in os.environ:
         if env_variable == "field_username":
             username = os.environ[env_variable]
         elif env_variable == "field_password":
             password = os.environ[env_variable]
-        elif env_variable == "link_id":
-            link_id = os.environ[env_variable]
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        exit(0)
-    main.setup_db()
-    main.print_header(link_id, reload=True)
+        elif env_variable == "var_keep_login" and os.environ[env_variable] == "yes":
+            keep_login = True
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) != 0:
         print("You are already logged in.")
     elif username == "":
@@ -65,11 +60,12 @@ try:
                 hashed_password = hasher.hash(password)
                 main.execute_sql(f"UPDATE users SET password = '{main.encrypt(hashed_password)}' WHERE username = '{username}'")
             main.execute_sql(f"UPDATE users SET link_id = '{link_id}', login_time = unixepoch() WHERE username = '{username}'")
-            # TODO rehash and/or reencrypt
+            if keep_login and remote_identity != "":
+                main.execute_sql(f"UPDATE users SET remote_identity = '{remote_identity}' WHERE username = '{username}'")
+            # TODO rehash and/or reencrypt if needed
             print("You logged in successfully.")
             # submit a dummy value in order to force a reload
-            print("`F00f`_`[Continue`:" + main.page_path
-                  + "/index.mu`reload=376]`_`f")
+            print("`F00f`_`[Continue`:" + main.page_path + "/index.mu`reload=376]`_`f")
     main.close_database()
 except:
     print("An error occured")

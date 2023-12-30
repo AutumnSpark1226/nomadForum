@@ -6,20 +6,22 @@ from argon2 import PasswordHasher
 
 
 def print_fields():
+    print("Please read the `F00f`_`[rules`:" + main.page_path + "/rules.mu`*]`_`f")
     print("Username: `B444`<username`" + username + ">`b")
     print("Password: `B444`<!|password`>`b")
     print("Confirm Password: `B444`<!|password_confirm`>`b")
-    print("`F00f`_`[Register`:" + main.page_path + "/register.mu`*]`_`f")
+    print("`F00f`_`[Register`:" + main.page_path + "/register.mu`*]`_`f  `F00f`_`[Register and stay logged in`:" + main.page_path + "/register.mu`*|keep_login=yes]`_`f")
     print()
     print("Consider using a unique password. A malicious node owner could add a script that saves plaintext passwords because they cannot be hashed on the client.")
 
 
-print("#!c=0")
 try:
+    link_id, remote_identity = main.handle_ids()
+    main.print_header(link_id, reload=True)
     username = ""
     password = ""
     password_confirm = ""
-    link_id = ""
+    keep_login = False
     for env_variable in os.environ:
         if env_variable == "field_username":
             username = os.environ[env_variable]
@@ -27,14 +29,8 @@ try:
             password = os.environ[env_variable]
         elif env_variable == "field_password_confirm":
             password_confirm = os.environ[env_variable]
-        elif env_variable == "link_id":
-            link_id = os.environ[env_variable]
-    main.setup_db()
-    main.print_header(link_id, reload=True)
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        main.close_database()
-        exit(0)
+        elif env_variable == "var_keep_login" and os.environ[env_variable] == "yes":
+            keep_login = True
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) != 0:
         print("You are already logged in.")
     elif username == "":
@@ -67,6 +63,8 @@ try:
                 exit(0)
             prepared_password = main.encrypt(hashed_password)
             main.execute_sql(f"INSERT INTO users (username, password, link_id, login_time) VALUES ('{username}', '{prepared_password}', '{link_id}', unixepoch())")
+            if keep_login and remote_identity != "":
+                main.execute_sql(f"UPDATE users SET remote_identity = '{remote_identity}' WHERE username = '{username}'")
             print("Registration successful!")
             print(f"Welcome to {main.forum_name}!")
             # submit a dummy value in order to force a reload

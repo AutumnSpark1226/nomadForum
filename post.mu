@@ -13,24 +13,18 @@ def print_fields():
 
 print("#!c=0")
 try:
-    link_id = ""
+    link_id, remote_identity = main.handle_ids()
+    main.print_header(link_id)
     title = ""
     content = ""
     for env_variable in os.environ:
-        if env_variable == "link_id":
-            link_id = os.environ[env_variable]
-        elif env_variable == "field_title":
+        if env_variable == "field_title":
             title = os.environ[env_variable]
         elif env_variable == "field_content":
             content = os.environ[env_variable]
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        exit(0)
-    main.setup_db()
-    main.print_header(link_id)
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) == 0:
         print("you are not logged in")
-    elif title == "" or content == "":
+    elif title == "" and content == "":
         print_fields()
     elif len(title) < 4:
         print("title must be at least 4 characters")

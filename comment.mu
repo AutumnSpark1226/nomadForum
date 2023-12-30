@@ -7,30 +7,22 @@ import main
 
 def print_fields() -> None:
     print(f"Comment: `B444`<content`{content}>`b")
-    print(f"`F00f`_`[Post comment`:{
-          main.page_path}/comment.mu`*|post_id={post_id}|parent={parent}]`_`f")
+    print(f"`F00f`_`[Post comment`:{main.page_path}/comment.mu`*|post_id={post_id}|parent={parent}]`_`f")
 
 
-print("#!c=0")
 try:
-    link_id = ""
+    link_id, remote_identity = main.handle_ids()
+    main.print_header(link_id, reload=True)
     content = ""
     post_id = ""
     parent = ""
     for env_variable in os.environ:
-        if env_variable == "link_id":
-            link_id = os.environ[env_variable]
-        elif env_variable == "field_content":
+        if env_variable == "field_content":
             content = os.environ[env_variable]
         elif env_variable == "var_post_id":
             post_id = os.environ[env_variable]
         elif env_variable == "var_parent":
             parent = os.environ[env_variable]
-    if len(link_id) != 32 or not link_id.isalnum():
-        print("something went wrong...")
-        exit(0)
-    main.setup_db()
-    main.print_header(link_id)
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) == 0:
         print("you are not logged in")
     elif content == "":
