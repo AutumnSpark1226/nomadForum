@@ -30,7 +30,7 @@ def print_fields():
 def display_comment(parent: str, indent: int):
     comments = main.query_database(f"SELECT comment_id, username, content, datetime(changed, 'unixepoch') FROM comments WHERE post_id = '{post_id}' AND parent = '{parent}'")
     for comment_data in comments:
-        print(">" * (2 + indent) + f"{comment_data[1]}: (){comment_data[3]} (UTC))")
+        print(">" * (2 + indent) + f"{comment_data[1]}: ({comment_data[3]} (UTC))")
         print(comment_data[2])
         print("``")
         if not comments_locked:
