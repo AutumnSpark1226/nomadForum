@@ -1,4 +1,22 @@
 #!/usr/bin/python3
+
+# nomadForum - a forum on the NomadNetwork
+# Copyright (C) 2023-2024  AutumnSpark1226
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import os
 import math
 
@@ -36,7 +54,7 @@ try:
         print(f"{post_data[1]}: `F00f`_`[{post_title}`:{main.page_path}/view.mu`post_id={post_data[0]}]`_`f   ({post_data[3]} (UTC))")
     print("-")
     max_page_count = math.floor((len(posts) - 1) / 25)
-    print(f"`F00f`_`[<< Previous page`:{main.page_path}/list.mu`sort={sort}|page={str(max(0, page - 1))}]`_`f  Page {str(page + 1)}  `F00f`_`[Next page >>`:{main.page_path}/list.mu`sort={sort}|page={str(min(max_page_count, page + 1))}]`_`f")
+    print(f"`F00f`_`[<< Previous page`:{main.page_path}/list.mu`sort={sort}|page={str(max(0, page - 1))}]`_`f  Page {str(page + 1)} of {max_page_count + 1} `F00f`_`[Next page >>`:{main.page_path}/list.mu`sort={sort}|page={str(min(max_page_count, page + 1))}]`_`f")
     main.close_database()
 except:
     print("An error occured")

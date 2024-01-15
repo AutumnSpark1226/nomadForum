@@ -1,3 +1,20 @@
+# nomadForum - a forum on the NomadNetwork
+# Copyright (C) 2023-2024  AutumnSpark1226
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import os
 import os.path
 import sqlite3
@@ -8,7 +25,7 @@ from cryptography.fernet import Fernet, MultiFernet
 
 # configure your setup here
 storage_path = ".nomadForum"  # folder containing all saved files (database, keys, etc.)
-page_path = "/page/nomadforum"  # path on your node, here {node_id}:/page/nomadforum/index.mu (nomadnet url) or ~/.nomadnetwork/storage/pages/nomadforum/index.mu (file path) would be the main page
+page_path = "/page/nomadForum"  # path on your node, here {node_id}:/page/nomadforum/index.mu (nomadnet url) or ~/.nomadnetwork/storage/pages/nomadforum/index.mu (file path) would be the main page
 forum_name = "nomadForum"  # name your forum
 
 connection: Connection
@@ -21,6 +38,7 @@ def setup_db() -> None:
         os.mkdir(storage_path)
     connection = sqlite3.connect(storage_path + "/database.db")
     cursor = connection.cursor()
+    execute_sql("CREATE TABLE IF NOT EXISTS settings (setting_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, key TEXT NOT NULL, value TEXT)")
     execute_sql("CREATE TABLE IF NOT EXISTS users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, display_name TEXT, enabled INTEGER DEFAULT 1 NOT NULL, password TEXT NOT NULL, link_id TEXT, remote_identity TEXT, login_time INTEGER)")
     execute_sql("CREATE TABLE IF NOT EXISTS posts (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, post_id TEXT NOT NULL UNIQUE, username TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL, locked INTEGER DEFAULT 0 NOT NULL)")
     execute_sql("CREATE TABLE IF NOT EXISTS comments (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, comment_id TEXT NOT NULL UNIQUE, post_id TEXT NOT NULL, parent TEXT NOT NULL, username TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL)")
@@ -48,7 +66,7 @@ def query_database(command: str) -> [[]]:
 
 
 # return true if the username is allowed
-def check_username(username: str) -> bool:
+def check_username(username: str, allow_admin=False) -> bool:
     # check if string is printable
     if not set(username).issubset(set(string.printable)):
         return False
@@ -58,8 +76,8 @@ def check_username(username: str) -> bool:
     # don't allow double space
     if "  " in username:
         return False
-    # don't allow "admin" (reserved, needs to be added manually, script will be added in the future)
-    if username.upper() == "ADMIN":
+    # don't allow "admin" (reserved, can be added by executing the admin/create_create_admin_account.py script)
+    if username.upper() == "ADMIN" and not allow_admin:
         return False
     # don't allow "system" (reserved, used by system actions in the future)
     if username.upper() == "SYSTEM":
@@ -86,7 +104,6 @@ def prepare_content(content: str) -> str:
     # replace unwanted micron formatting
     content = content.replace("#", "\\#")  # sorry, no hidden messages
     content = content.replace("`=", "\`=")
-    content += "``"
     return content
 
 

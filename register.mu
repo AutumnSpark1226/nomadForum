@@ -1,4 +1,22 @@
 #!/usr/bin/python3
+
+# nomadForum - a forum on the NomadNetwork
+# Copyright (C) 2023-2024  AutumnSpark1226
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import os
 import main
 from argon2.exceptions import VerificationError
@@ -7,9 +25,9 @@ from argon2 import PasswordHasher
 
 def print_fields():
     print("Please read the `F00f`_`[rules`:" + main.page_path + "/rules.mu`*]`_`f")
-    print("Username: `B444`<username`" + username + ">`b")
-    print("Password: `B444`<!|password`>`b")
-    print("Confirm Password: `B444`<!|password_confirm`>`b")
+    print("Username:        `B444`<username`" + username + ">`b")
+    print("Password:        `B444`<!|password`>`b")
+    print("Repeat password: `B444`<!|password_confirm`>`b")
     print("`F00f`_`[Register`:" + main.page_path + "/register.mu`*]`_`f  `F00f`_`[Register and stay logged in`:" + main.page_path + "/register.mu`*|keep_login=yes]`_`f")
     print()
     print("Consider using a unique password. A malicious node owner could add a script that saves plaintext passwords because they cannot be hashed on the client.")
