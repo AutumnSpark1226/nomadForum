@@ -27,6 +27,11 @@ from cryptography.fernet import Fernet, MultiFernet
 storage_path = ".nomadForum"  # folder containing all saved files (database, keys, etc.)
 page_path = "/page/nomadForum"  # path on your node, here {node_id}:/page/nomadforum/index.mu (nomadnet url) or ~/.nomadnetwork/storage/pages/nomadforum/index.mu (file path) would be the main page
 forum_name = "nomadForum"  # name your forum
+# add your own front page information here
+main_page_info = """
+`!A forum on the NomadNetwork`!
+...
+"""
 
 connection: Connection
 cursor: Cursor
@@ -126,15 +131,14 @@ def print_header(link_id: str, reload=False) -> None:
     print('-')
     account_options = "ERROR"
     if len(query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) != 0:
-        account_options = f"`F00f`_`[Logout`:{page_path}/logout.mu]`_`f"
+        account_options = f"`F00f`_`[Create post`:{page_path}/post.mu]`_`f `F00f`_`[Logout`:{page_path}/logout.mu`confirm=yes]`_`f"
     else:
         account_options = f"`F00f`_`[Login`:{page_path}/login.mu]`_`f  `F00f`_`[Register`:{page_path}/register.mu]`_`f"
     if reload:
         reload_option = "`reload=5636"
     else:
         reload_option = ""
-    print(f"`c`!{forum_name}`!")
-    print(f"`r`F00f`_`[Home`:{page_path}/index.mu{reload_option}]`_`f  {account_options}     ")
+    print(f"`c`!{forum_name}`!   `F00f`_`[Home`:{page_path}/index.mu{reload_option}]`_`f  {account_options}     ")
     print("`F222")
     print("-")
     print("`a`b`f")

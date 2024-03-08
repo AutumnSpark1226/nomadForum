@@ -81,9 +81,9 @@ try:
             if keep_login and remote_identity != "":
                 main.execute_sql(f"UPDATE users SET remote_identity = '{remote_identity}' WHERE username = '{username}'")
             # TODO rehash and/or reencrypt if needed
-            print("You logged in successfully.")
-            # submit a dummy value in order to force a reload
-            print("`F00f`_`[Continue`:" + main.page_path + "/index.mu`reload=376]`_`f")
+            print(">You logged in successfully.")
+            print()
+            print(f"`F00f`_`[Continue`:{main.page_path}/index.mu]`_`f")
     main.close_database()
 except:
     print("An error occured")

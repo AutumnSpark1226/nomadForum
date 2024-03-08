@@ -83,8 +83,9 @@ try:
             main.execute_sql(f"INSERT INTO users (username, password, link_id, login_time) VALUES ('{username}', '{prepared_password}', '{link_id}', unixepoch())")
             if keep_login and remote_identity != "":
                 main.execute_sql(f"UPDATE users SET remote_identity = '{remote_identity}' WHERE username = '{username}'")
-            print("Registration successful!")
+            print(">Registration successful!")
             print(f"Welcome to {main.forum_name}!")
+            print()
             # submit a dummy value in order to force a reload
             print(f"`F00f`_`[Continue`:{main.page_path}/index.mu`reload=3542434]`_`f")
     main.close_database()

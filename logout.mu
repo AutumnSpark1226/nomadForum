@@ -38,7 +38,8 @@ try:
         print_fields()
     elif confirm == "yes":
         main.execute_sql(f"UPDATE users SET link_id = '0', remote_identity = '0', login_time = 0 WHERE link_id = '{link_id}'")
-        print("\nLogged out")
+        print(">Logged out")
+        print()
         # submit a dummy value in order to force a reload
         print(f"`F00f`_`[Continue`:{main.page_path}/index.mu`reload=62323]`_`f")
     main.close_database()
