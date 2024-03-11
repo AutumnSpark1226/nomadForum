@@ -18,6 +18,7 @@
 
 
 import os
+
 import main
 
 
@@ -33,12 +34,18 @@ try:
         if env_variable == "var_confirm":
             confirm = os.environ[env_variable]
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) == 0:
-        print("\nyou are not logged in")
+        print("\n>You are not logged in.")
     elif confirm != "yes":
         print_fields()
     elif confirm == "yes":
-        main.execute_sql(f"UPDATE users SET link_id = '0', remote_identity = '0', login_time = 0 WHERE link_id = '{link_id}'")
-        print(">Logged out")
+        username = main.query_database(f"SELECT username FROM users WHERE link_id = '{link_id}'")[0][0]
+        if main.decrypt(main.query_database(f"SELECT password FROM users WHERE username = '{username}'")[0][0]) != "$nopassword$":
+            main.execute_sql(f"UPDATE users SET link_id = '0', login_time = 0 WHERE link_id = '{link_id}'")
+            if len(main.query_database(f"SELECT username FROM connections WHERE remote_id = '{remote_identity}' AND allow_login = 1 AND username = '{username}'")) == 1:
+                main.execute_sql(f"UPDATE connections SET allow_login = 0 WHERE remote_id = '{remote_identity}' AND allow_login = 1 AND username = '{username}'")
+            print(">Logged out")
+        else:
+            print(">Can't log out. You have set no password.")
         print()
         # submit a dummy value in order to force a reload
         print(f"`F00f`_`[Continue`:{main.page_path}/index.mu`reload=62323]`_`f")

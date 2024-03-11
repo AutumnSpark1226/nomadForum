@@ -17,6 +17,7 @@
 
 import os
 import os.path
+import sys
 import sqlite3
 import string
 from sqlite3 import Connection, Cursor
@@ -47,6 +48,7 @@ def setup_db() -> None:
     execute_sql("CREATE TABLE IF NOT EXISTS users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, display_name TEXT, enabled INTEGER DEFAULT 1 NOT NULL, password TEXT NOT NULL, link_id TEXT, remote_identity TEXT, login_time INTEGER)")
     execute_sql("CREATE TABLE IF NOT EXISTS posts (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, post_id TEXT NOT NULL UNIQUE, username TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL, locked INTEGER DEFAULT 0 NOT NULL)")
     execute_sql("CREATE TABLE IF NOT EXISTS comments (numeric_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, comment_id TEXT NOT NULL UNIQUE, post_id TEXT NOT NULL, parent TEXT NOT NULL, username TEXT NOT NULL, content TEXT NOT NULL, changed INTEGER NOT NULL)")
+    execute_sql("CREATE TABLE IF NOT EXISTS connections (conn_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, remote_id TEXT NOT NULL, allow_login INTEGER DEFAULT 0 NOT NULL, send_notifications INTEGER DEFAULT 0 NOT NULL, public INTEGER DEFAULT 0 NOT NULL)")
     # remove old sessions
     execute_sql("UPDATE users SET link_id = '0', login_time = 0 WHERE link_id != '0' AND (login_time + 86400) < unixepoch()")
 
@@ -154,25 +156,26 @@ def handle_ids() -> [str, str]:
             remote_identity = os.environ[env_variable]
     if len(link_id) != 32 or not link_id.isalnum():
         print("something went wrong...")
-        exit(0)
+        sys.exit(0)
     setup_db()
     if len(remote_identity) != 0:
         if len(remote_identity) != 32 or not remote_identity.isalnum():
             print("something went wrong...")
             close_database()
-            exit(0)
+            sys.exit(0)
         else:
             check_remote_identity(link_id, remote_identity)
     return link_id, remote_identity
 
 
 def check_remote_identity(link_id: str, remote_identity: str) -> None:
-    query_result = query_database(f"SELECT user_id FROM users WHERE remote_identity = '{remote_identity}' AND link_id != '{link_id}'")
+    query_result = query_database(f"SELECT username FROM connections WHERE remote_id = '{remote_identity}' AND allow_login = 1")
     if len(query_result) == 1:
-        execute_sql(f"UPDATE users SET link_id = '{link_id}' WHERE user_id = {query_result[0][0]} AND remote_identity = '{remote_identity}'")
+        execute_sql(f"UPDATE users SET link_id = '{link_id}' WHERE username = '{query_result[0][0]}' AND enabled = 1")
     elif len(query_result) >= 1:
-        # this should NOT happen, however the system might be able to repair itself
-        execute_sql(f"UPDATE users SET link_id = '0', remote_identity = '0' WHERE remote_identity = '{remote_identity}'")
+        # this should NOT happen
+        print("Something went REALLY wrong... Please contact an administrator immedeatly! Error: 2REMID")
+        sys.exit(0)
 
 
 def get_MultiFernet() -> MultiFernet:

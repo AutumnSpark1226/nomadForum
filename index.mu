@@ -25,7 +25,7 @@ try:
     main.print_header(link_id)
     print(main.main_page_info)
     print('`F222`Bddd')
-    print(f"Latest `F00f`_`[posts:`:{main.page_path}/list.mu]`_`f       `F00f`_`[List all posts`:{main.page_path}/list.mu]`_`f  `F00f`_`[Delete your account`:{main.page_path}/delete_account.mu]`_`f")
+    print(f"Latest `F00f`_`[posts:`:{main.page_path}/list.mu]`_`f       `F00f`_`[List all posts`:{main.page_path}/list.mu]`_`f  `F00f`_`[Settings`:{main.page_path}/user_settings.mu]`_`f")
     print("``")
     print()
     posts = main.query_database("SELECT post_id, username, title, datetime(changed, 'unixepoch') FROM posts ORDER BY changed DESC LIMIT 10")

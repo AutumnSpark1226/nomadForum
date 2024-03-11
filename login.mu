@@ -19,6 +19,8 @@
 
 import os
 import main
+import sys
+
 from argon2.exceptions import VerificationError
 from argon2 import PasswordHasher
 
@@ -43,26 +45,22 @@ try:
         elif env_variable == "var_keep_login" and os.environ[env_variable] == "yes":
             keep_login = True
     if len(main.query_database(f"SELECT user_id FROM users WHERE link_id = '{link_id}'")) != 0:
-        print("You are already logged in.")
+        print(">You are already logged in.")
     elif username == "":
         print_fields()
     elif len(username) < 4:
-        print("Your username must be longer than 4 characters.\n")
+        print(">Your username must be longer than 4 characters.\n")
         print_fields()
     elif len(username) > 64:
-        print("Your username must not be longer than 64 characters.\n")
+        print(">Your username must not be longer than 64 characters.\n")
         print_fields()
     elif not main.check_username(username, allow_admin=True):
-        print("Your username is not allowed due to forum policies.\n")
+        print(">Your username is not allowed due to forum policies.\n")
         print_fields()
     else:
         if len(main.query_database(f"SELECT user_id FROM users WHERE username = '{username}'")) == 0:
-            print("You entered a wrong username or password.\n")
+            print(">You entered a wrong username or password.\n")
             print_fields()
-        elif main.query_database(f"SELECT enabled FROM users WHERE username = '{username}'")[0][0] != 1:
-            print("Your account is disabled. You are not allowed to log in.")
-            main.close_database()
-            exit(0)
         else:
             hasher = PasswordHasher()
             hashed_password = main.decrypt(main.query_database(
@@ -70,20 +68,29 @@ try:
             try:
                 hasher.verify(hashed_password, password)
             except VerificationError:
-                print("You entered a wrong username or password.\n")
+                print(">You entered a wrong username or password.\n")
                 print_fields()
                 main.close_database()
-                exit(0)
+                sys.exit(0)
+            # TODO rehash and/or reencrypt if needed
             if hasher.check_needs_rehash(hashed_password):
                 hashed_password = hasher.hash(password)
-                main.execute_sql(f"UPDATE users SET password = '{main.encrypt(hashed_password)}' WHERE username = '{username}'")
+                main.execute_sql("UPDATE users SET password = '" + main.encrypt(hashed_password) + f"' WHERE username = '{username}'")
             main.execute_sql(f"UPDATE users SET link_id = '{link_id}', login_time = unixepoch() WHERE username = '{username}'")
-            if keep_login and remote_identity != "":
-                main.execute_sql(f"UPDATE users SET remote_identity = '{remote_identity}' WHERE username = '{username}'")
-            # TODO rehash and/or reencrypt if needed
             print(">You logged in successfully.")
+            if keep_login:
+                if remote_identity != "":
+                    if len(main.query_database(f"SELECT remote_id FROM connections WHERE username = '{username}' AND remote_id = '{remote_identity}'")) == 0:
+                        if len(main.query_database(f"SELECT remote_id FROM connections WHERE remote_id = '{remote_identity}'")) != 0:
+                            print("\n>This identity is already connected to an account. You won't stay logged in.")
+                        else:
+                            main.execute_sql(f"INSERT INTO connections (username, remote_id, allow_login) VALUES ('{username}', '{remote_identity}', 1)")
+                    else:
+                        main.execute_sql(f"UPDATE connections SET allow_login = 1 WHERE username = '{username}' AND remote_id = '{remote_identity}'")
+                else:
+                    print("\n>You are not identified.")
             print()
             print(f"`F00f`_`[Continue`:{main.page_path}/index.mu]`_`f")
     main.close_database()
-except:
+except Exception:
     print("An error occured")
